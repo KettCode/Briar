@@ -120,6 +120,15 @@
 				android:targetPackage="@string/app_package"/>
 		</Preference>
 
+		<SwitchPreference
+			android:enabled="false"
+			android:key="pref_key_auto_delete"
+			android:persistent="false"
+			android:summary="Löscht alle gelesenen Nachrichten automatisch nach 5 Minuten."
+			android:title="Auto. löschen"
+			android:widgetLayout="@layout/preference_switch_compat"
+			app:iconSpaceReserved="false"/>
+
 	</PreferenceCategory>
 
 	<PreferenceCategory

@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import org.briarproject.bramble.api.db.DatabaseComponent;
 import org.briarproject.bramble.api.db.DbException;
 import org.briarproject.bramble.api.event.Event;
 import org.briarproject.bramble.api.event.EventBus;
@@ -27,6 +28,8 @@ import org.briarproject.bramble.api.settings.Settings;
 import org.briarproject.bramble.api.settings.SettingsManager;
 import org.briarproject.bramble.api.settings.event.SettingsUpdatedEvent;
 import org.briarproject.bramble.api.system.LocationUtils;
+import org.briarproject.bramble.custom.AutoDelete;
+import org.briarproject.bramble.db.DatabaseComponentImpl_Factory;
 import org.briarproject.bramble.plugin.tor.CircumventionProvider;
 import org.briarproject.bramble.util.StringUtils;
 import org.briarproject.briar.R;
@@ -116,6 +119,7 @@ public class SettingsFragment extends PreferenceFragmentCompat
 	public static final String PREF_SCREEN_LOCK = "pref_key_lock";
 	public static final String PREF_SCREEN_LOCK_TIMEOUT =
 			"pref_key_lock_timeout";
+	public static final String PREF_KEY_AUTO_DELETE = "pref_key_auto_delete";
 	public static final String NOTIFY_SIGN_IN = "pref_key_notify_sign_in";
 
 	private static final String BT_NAMESPACE =
@@ -144,6 +148,7 @@ public class SettingsFragment extends PreferenceFragmentCompat
 	private SwitchPreference torMobile;
 	private SwitchPreference torOnlyWhenCharging;
 	private SwitchPreference screenLock;
+	private SwitchPreference autoDelete;
 	private ListPreference screenLockTimeout;
 	private SwitchPreference notifyPrivateMessages;
 	private SwitchPreference notifyGroupMessages;
@@ -187,6 +192,7 @@ public class SettingsFragment extends PreferenceFragmentCompat
 		torMobile = findPreference(TOR_MOBILE);
 		torOnlyWhenCharging = findPreference(TOR_ONLY_WHEN_CHARGING);
 		screenLock = findPreference(PREF_SCREEN_LOCK);
+		autoDelete = findPreference(PREF_KEY_AUTO_DELETE);
 		screenLockTimeout = findPreference(PREF_SCREEN_LOCK_TIMEOUT);
 		notifyPrivateMessages =
 				findPreference("pref_key_notify_private_messages");
@@ -221,6 +227,7 @@ public class SettingsFragment extends PreferenceFragmentCompat
 		torMobile.setOnPreferenceChangeListener(this);
 		torOnlyWhenCharging.setOnPreferenceChangeListener(this);
 		screenLock.setOnPreferenceChangeListener(this);
+		autoDelete.setOnPreferenceChangeListener(this);
 		screenLockTimeout.setOnPreferenceChangeListener(this);
 
 		Preference prefFeedback =
@@ -415,6 +422,8 @@ public class SettingsFragment extends PreferenceFragmentCompat
 							DEFAULT_PREF_TOR_ONLY_WHEN_CHARGING);
 			torOnlyWhenCharging.setChecked(torChargingSetting);
 
+			autoDelete.setChecked(settings.getBoolean(PREF_KEY_AUTO_DELETE, false));
+
 			displayScreenLockSetting();
 
 			if (SDK_INT < 26) {
@@ -486,6 +495,7 @@ public class SettingsFragment extends PreferenceFragmentCompat
 		notifyBlogPosts.setEnabled(enabled);
 		notifyVibration.setEnabled(enabled);
 		notifySound.setEnabled(enabled);
+		autoDelete.setEnabled(true);
 	}
 
 	private void displayScreenLockSetting() {
@@ -625,6 +635,11 @@ public class SettingsFragment extends PreferenceFragmentCompat
 		} else if (preference == notifyVibration) {
 			Settings s = new Settings();
 			s.putBoolean(PREF_NOTIFY_VIBRATION, (Boolean) newValue);
+			storeSettings(s);
+		}
+		else if (preference == autoDelete) {
+			Settings s = new Settings();
+			s.putBoolean(PREF_KEY_AUTO_DELETE, (Boolean) newValue);
 			storeSettings(s);
 		}
 		return true;

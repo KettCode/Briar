@@ -1717,6 +1717,34 @@ abstract class JdbcDatabase implements Database<Connection> {
 	}
 
 	@Override
+	public List<MessageStatus> getReadMessageStaten(Connection txn) throws DbException
+	{
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		try {
+			String sql = "SELECT messageId, contactId,  txCount > 0, seen FROM statuses"
+					+ " WHERE seen";
+			ps = txn.prepareStatement(sql);
+			rs = ps.executeQuery();
+			List<MessageStatus> statuses = new ArrayList<>();
+			while (rs.next()) {
+				MessageId messageId = new MessageId(rs.getBytes(1));
+				ContactId contactId = new ContactId(rs.getInt(2));
+				boolean sent = rs.getBoolean(3);
+				boolean seen = rs.getBoolean(4);
+				statuses.add(new MessageStatus(messageId, contactId, sent, seen));
+			}
+			rs.close();
+			ps.close();
+			return statuses;
+		} catch (SQLException e) {
+			tryToClose(rs, LOG, WARNING);
+			tryToClose(ps, LOG, WARNING);
+			throw new DbException(e);
+		}
+	}
+
+	@Override
 	public Collection<MessageId> getMessageIds(Connection txn, GroupId g)
 			throws DbException {
 		PreparedStatement ps = null;

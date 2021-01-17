@@ -280,6 +280,8 @@ public interface DatabaseComponent extends TransactionManager {
 	 */
 	Message getMessage(Transaction txn, MessageId m) throws DbException;
 
+	List<MessageStatus> getReadMessageStaten(Transaction transaction) throws DbException;
+
 	/**
 	 * Returns the IDs of all delivered messages in the given group.
 	 * <p/>

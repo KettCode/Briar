@@ -6,6 +6,7 @@ import org.briarproject.bramble.api.db.DbClosedException;
 import org.briarproject.bramble.api.db.DbException;
 import org.briarproject.bramble.api.db.MigrationListener;
 import org.briarproject.bramble.api.nullsafety.NotNullByDefault;
+import org.briarproject.bramble.api.sync.Message;
 import org.briarproject.bramble.api.sync.MessageFactory;
 import org.briarproject.bramble.api.system.Clock;
 import org.briarproject.bramble.util.StringUtils;
@@ -15,6 +16,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collection;
 import java.util.Properties;
 import java.util.logging.Logger;
 

@@ -340,6 +340,8 @@ interface Database<T> {
 	 */
 	Message getMessage(T txn, MessageId m) throws DbException;
 
+	List<MessageStatus> getReadMessageStaten(T txn) throws DbException;
+
 	/**
 	 * Returns the IDs and states of all dependencies of the given message.
 	 * For missing dependencies and dependencies in other groups, the state

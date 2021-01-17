@@ -71,6 +71,10 @@ import org.briarproject.bramble.api.transport.KeySetId;
 import org.briarproject.bramble.api.transport.TransportKeySet;
 import org.briarproject.bramble.api.transport.TransportKeys;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -92,6 +96,7 @@ import static org.briarproject.bramble.api.sync.Group.Visibility.SHARED;
 import static org.briarproject.bramble.api.sync.validation.MessageState.DELIVERED;
 import static org.briarproject.bramble.api.sync.validation.MessageState.UNKNOWN;
 import static org.briarproject.bramble.db.DatabaseConstants.MAX_OFFERED_MESSAGES;
+import static org.briarproject.bramble.db.JdbcUtils.tryToClose;
 import static org.briarproject.bramble.util.LogUtils.logDuration;
 import static org.briarproject.bramble.util.LogUtils.logException;
 import static org.briarproject.bramble.util.LogUtils.now;
@@ -565,6 +570,13 @@ class DatabaseComponentImpl<T> implements DatabaseComponent {
 		if (!db.containsMessage(txn, m))
 			throw new NoSuchMessageException();
 		return db.getMessage(txn, m);
+	}
+
+	@Override
+	public List<MessageStatus> getReadMessageStaten(Transaction transaction) throws DbException
+	{
+		T txn = unbox(transaction);
+		return db.getReadMessageStaten(txn);
 	}
 
 	@Override
