@@ -23,6 +23,8 @@ import org.briarproject.bramble.api.db.DatabaseConfig;
 import org.briarproject.bramble.api.db.DbException;
 import org.briarproject.bramble.api.lifecycle.LifecycleManager;
 import org.briarproject.bramble.api.lifecycle.LifecycleManager.StartResult;
+import org.briarproject.bramble.api.settings.Settings;
+import org.briarproject.bramble.api.settings.SettingsManager;
 import org.briarproject.bramble.api.system.AndroidExecutor;
 import org.briarproject.bramble.api.system.AndroidWakeLockManager;
 import org.briarproject.bramble.db.DatabaseComponentImpl_Factory;
@@ -97,6 +99,8 @@ public class BriarService extends Service {
 	AndroidWakeLockManager wakeLockManager;
 	@Inject
 	MessagingManager messagingManager;
+	@Inject
+	SettingsManager settingsManager;
 
 
 	// Fields that are accessed from background threads must be volatile
@@ -183,7 +187,6 @@ public class BriarService extends Service {
 
 	private void StartHandler()
 	{
-		DoWork();
 		final Handler handler = new Handler();
 		final int delay = 300000; // 1000 milliseconds == 1 second // 300000 = 5 min.
 
@@ -197,18 +200,18 @@ public class BriarService extends Service {
 
 	private void DoWork()
 	{
-		SettingsFragment settingsFragment = new SettingsFragment();
-		boolean autoDelete = settingsFragment.GetAutoDelete();
-		if(autoDelete)
+		try
 		{
-			try
-			{
+			final String SETTINGS_NAMESPACE = "android-ui";
+			final String PREF_KEY_AUTO_DELETE = "pref_key_auto_delete";
+			Settings settings = settingsManager.getSettings(SETTINGS_NAMESPACE);
+			boolean autoDelete = settings.getBoolean(PREF_KEY_AUTO_DELETE, false);
+			if(autoDelete)
 				messagingManager.deleteMessagesAuto();
-			}
-			catch(DbException dbException)
-			{
+		}
+		catch(DbException dbException)
+		{
 
-			}
 		}
 	}
 

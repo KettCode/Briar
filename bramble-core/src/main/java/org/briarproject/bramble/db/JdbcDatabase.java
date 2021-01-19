@@ -1998,7 +1998,6 @@ abstract class JdbcDatabase implements Database<Connection> {
 					") ";
 			ps = txn.prepareStatement(sql);
 			int affected = ps.executeUpdate();
-			if (affected != 1) throw new DbStateException();
 			ps.close();
 		} catch (SQLException e) {
 			tryToClose(ps, LOG, WARNING);

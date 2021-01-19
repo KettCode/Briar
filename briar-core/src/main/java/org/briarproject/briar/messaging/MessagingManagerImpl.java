@@ -423,7 +423,7 @@ class MessagingManagerImpl implements MessagingManager, IncomingMessageHook,
 
 	@Override
 	public void deleteMessagesAuto() throws DbException {
-		Transaction txn = db.startTransaction(true);
+		Transaction txn = db.startTransaction(false);
 		try {
 			db.deleteMessagesAuto(txn);
 		} finally {

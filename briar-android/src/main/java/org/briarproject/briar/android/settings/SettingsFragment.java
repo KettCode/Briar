@@ -473,11 +473,6 @@ public class SettingsFragment extends PreferenceFragmentCompat
 		});
 	}
 
-	public boolean GetAutoDelete()
-	{
-		return settings.getBoolean(PREF_KEY_AUTO_DELETE, false);
-	}
-
 	private void setSettingsEnabled(boolean enabled) {
 		// preferences not needed here, because handled by SharedPreferences:
 		// - pref_key_theme
