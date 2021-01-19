@@ -233,6 +233,8 @@ interface Database<T> {
 	 */
 	void deleteMessage(T txn, MessageId m) throws DbException;
 
+	void deleteMessageAuto(T txn) throws DbException;
+
 	/**
 	 * Deletes any metadata associated with the given message.
 	 */

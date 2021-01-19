@@ -422,6 +422,16 @@ class MessagingManagerImpl implements MessagingManager, IncomingMessageHook,
 	}
 
 	@Override
+	public void deleteMessagesAuto() throws DbException {
+		Transaction txn = db.startTransaction(true);
+		try {
+			db.deleteMessagesAuto(txn);
+		} finally {
+			db.endTransaction(txn);
+		}
+	}
+
+	@Override
 	public boolean contactSupportsImages(Transaction txn, ContactId c)
 			throws DbException {
 		int minorVersion = clientVersioningManager

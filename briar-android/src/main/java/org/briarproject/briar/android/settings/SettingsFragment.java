@@ -190,8 +190,8 @@ public class SettingsFragment extends PreferenceFragmentCompat
 		torMobile = findPreference(TOR_MOBILE);
 		torOnlyWhenCharging = findPreference(TOR_ONLY_WHEN_CHARGING);
 		screenLock = findPreference(PREF_SCREEN_LOCK);
-		autoDelete = findPreference(PREF_KEY_AUTO_DELETE);
 		screenLockTimeout = findPreference(PREF_SCREEN_LOCK_TIMEOUT);
+		autoDelete = findPreference(PREF_KEY_AUTO_DELETE);
 		notifyPrivateMessages =
 				findPreference("pref_key_notify_private_messages");
 		notifyGroupMessages = findPreference("pref_key_notify_group_messages");
@@ -471,6 +471,11 @@ public class SettingsFragment extends PreferenceFragmentCompat
 			}
 			setSettingsEnabled(true);
 		});
+	}
+
+	public boolean GetAutoDelete()
+	{
+		return settings.getBoolean(PREF_KEY_AUTO_DELETE, false);
 	}
 
 	private void setSettingsEnabled(boolean enabled) {

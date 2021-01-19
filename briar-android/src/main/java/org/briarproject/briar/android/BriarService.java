@@ -14,17 +14,26 @@ import android.content.ServiceConnection;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
+import android.widget.Toast;
 
 import org.briarproject.bramble.api.account.AccountManager;
 import org.briarproject.bramble.api.crypto.SecretKey;
+import org.briarproject.bramble.api.db.DatabaseComponent;
+import org.briarproject.bramble.api.db.DatabaseConfig;
+import org.briarproject.bramble.api.db.DbException;
 import org.briarproject.bramble.api.lifecycle.LifecycleManager;
 import org.briarproject.bramble.api.lifecycle.LifecycleManager.StartResult;
 import org.briarproject.bramble.api.system.AndroidExecutor;
 import org.briarproject.bramble.api.system.AndroidWakeLockManager;
+import org.briarproject.bramble.db.DatabaseComponentImpl_Factory;
+import org.briarproject.bramble.db.DatabaseModule;
 import org.briarproject.briar.R;
 import org.briarproject.briar.android.logout.HideUiActivity;
+import org.briarproject.briar.android.settings.SettingsFragment;
 import org.briarproject.briar.api.android.AndroidNotificationManager;
 import org.briarproject.briar.api.android.LockManager;
+import org.briarproject.briar.api.blog.BlogManager;
+import org.briarproject.briar.api.messaging.MessagingManager;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -34,6 +43,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import androidx.core.app.NotificationCompat;
+import androidx.preference.SwitchPreference;
 
 import static android.app.NotificationManager.IMPORTANCE_DEFAULT;
 import static android.app.NotificationManager.IMPORTANCE_NONE;
@@ -85,6 +95,9 @@ public class BriarService extends Service {
 	LockManager lockManager;
 	@Inject
 	AndroidWakeLockManager wakeLockManager;
+	@Inject
+	MessagingManager messagingManager;
+
 
 	// Fields that are accessed from background threads must be volatile
 	@Inject
@@ -170,15 +183,33 @@ public class BriarService extends Service {
 
 	private void StartHandler()
 	{
+		DoWork();
 		final Handler handler = new Handler();
 		final int delay = 300000; // 1000 milliseconds == 1 second // 300000 = 5 min.
 
 		handler.postDelayed(new Runnable() {
 			public void run() {
-				//DoWork();
+				DoWork();
 				handler.postDelayed(this, delay);
 			}
 		}, delay);
+	}
+
+	private void DoWork()
+	{
+		SettingsFragment settingsFragment = new SettingsFragment();
+		boolean autoDelete = settingsFragment.GetAutoDelete();
+		if(autoDelete)
+		{
+			try
+			{
+				messagingManager.deleteMessagesAuto();
+			}
+			catch(DbException dbException)
+			{
+
+			}
+		}
 	}
 
 	@Override

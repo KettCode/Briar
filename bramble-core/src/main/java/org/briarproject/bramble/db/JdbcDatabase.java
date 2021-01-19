@@ -1986,6 +1986,27 @@ abstract class JdbcDatabase implements Database<Connection> {
 	}
 
 	@Override
+	public void deleteMessageAuto(Connection txn) throws DbException {
+		PreparedStatement ps = null;
+		try {
+			String sql = "delete messages\n" +
+					"where messageId in \n" +
+					"(\n" +
+					"\tselect messageId \n" +
+					"\tfrom statuses \n" +
+					"\twhere statuses.seen = 1\n" +
+					") ";
+			ps = txn.prepareStatement(sql);
+			int affected = ps.executeUpdate();
+			if (affected != 1) throw new DbStateException();
+			ps.close();
+		} catch (SQLException e) {
+			tryToClose(ps, LOG, WARNING);
+			throw new DbException(e);
+		}
+	}
+
+	@Override
 	public Map<MessageId, MessageState> getMessageDependencies(Connection txn,
 			MessageId m) throws DbException {
 		PreparedStatement ps = null;

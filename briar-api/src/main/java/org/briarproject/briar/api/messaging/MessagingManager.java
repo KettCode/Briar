@@ -82,6 +82,9 @@ public interface MessagingManager extends ConversationClient {
 	 *
 	 * Added: 2019-01-01
 	 */
+
+	void deleteMessagesAuto() throws DbException;
+
 	boolean contactSupportsImages(Transaction txn, ContactId c)
 			throws DbException;
 

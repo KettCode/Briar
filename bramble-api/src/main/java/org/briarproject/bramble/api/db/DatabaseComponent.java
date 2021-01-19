@@ -145,6 +145,8 @@ public interface DatabaseComponent extends TransactionManager {
 	 */
 	void deleteMessage(Transaction txn, MessageId m) throws DbException;
 
+	void deleteMessagesAuto(Transaction transaction) throws DbException;
+
 	/**
 	 * Deletes any metadata associated with the given message.
 	 */

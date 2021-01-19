@@ -385,6 +385,13 @@ class DatabaseComponentImpl<T> implements DatabaseComponent {
 	}
 
 	@Override
+	public void deleteMessagesAuto(Transaction transaction) throws DbException {
+		if (transaction.isReadOnly()) throw new IllegalArgumentException();
+		T txn = unbox(transaction);
+		db.deleteMessageAuto(txn);
+	}
+
+	@Override
 	public void deleteMessageMetadata(Transaction transaction, MessageId m)
 			throws DbException {
 		if (transaction.isReadOnly()) throw new IllegalArgumentException();
