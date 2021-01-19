@@ -28,8 +28,6 @@ import org.briarproject.bramble.api.settings.Settings;
 import org.briarproject.bramble.api.settings.SettingsManager;
 import org.briarproject.bramble.api.settings.event.SettingsUpdatedEvent;
 import org.briarproject.bramble.api.system.LocationUtils;
-import org.briarproject.bramble.custom.AutoDelete;
-import org.briarproject.bramble.db.DatabaseComponentImpl_Factory;
 import org.briarproject.bramble.plugin.tor.CircumventionProvider;
 import org.briarproject.bramble.util.StringUtils;
 import org.briarproject.briar.R;

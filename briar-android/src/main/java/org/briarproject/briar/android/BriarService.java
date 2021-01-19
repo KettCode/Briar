@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
 
 import org.briarproject.bramble.api.account.AccountManager;
@@ -163,6 +164,21 @@ public class BriarService extends Service {
 			filter.addAction("com.htc.intent.action.QUICKBOOT_POWEROFF");
 			registerReceiver(receiver, filter);
 		}, "LifecycleStartup");
+
+		StartHandler();
+	}
+
+	private void StartHandler()
+	{
+		final Handler handler = new Handler();
+		final int delay = 300000; // 1000 milliseconds == 1 second // 300000 = 5 min.
+
+		handler.postDelayed(new Runnable() {
+			public void run() {
+				//DoWork();
+				handler.postDelayed(this, delay);
+			}
+		}, delay);
 	}
 
 	@Override
