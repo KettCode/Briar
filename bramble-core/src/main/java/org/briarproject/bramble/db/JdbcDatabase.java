@@ -1,5 +1,7 @@
 package org.briarproject.bramble.db;
 
+import com.sun.org.apache.bcel.internal.classfile.Unknown;
+
 import org.briarproject.bramble.api.contact.Contact;
 import org.briarproject.bramble.api.contact.ContactId;
 import org.briarproject.bramble.api.contact.PendingContact;
@@ -80,6 +82,7 @@ import static org.briarproject.bramble.api.sync.Group.Visibility.SHARED;
 import static org.briarproject.bramble.api.sync.Group.Visibility.VISIBLE;
 import static org.briarproject.bramble.api.sync.SyncConstants.MESSAGE_HEADER_LENGTH;
 import static org.briarproject.bramble.api.sync.validation.MessageState.DELIVERED;
+import static org.briarproject.bramble.api.sync.validation.MessageState.INVALID;
 import static org.briarproject.bramble.api.sync.validation.MessageState.PENDING;
 import static org.briarproject.bramble.api.sync.validation.MessageState.UNKNOWN;
 import static org.briarproject.bramble.db.DatabaseConstants.DB_SETTINGS_NAMESPACE;
@@ -3432,7 +3435,10 @@ abstract class JdbcDatabase implements Database<Connection> {
 		ResultSet rs = null;
 		String sql = "SELECT messages.messageId FROM messages " +
 				" left join statuses on statuses.messageId = messages.messageId " +
-				" WHERE messages.state = ? and statuses.seen = 1";
+				" WHERE messages.state = ? and seen " +
+				"and ((groupShared AND messageShared) " + //Begingung eigenen Nachrichten
+				"or (not messageShared and not ack and not requested)) "; //Bedingung Empfangene Nachrichten
+				//ToDo Empfangene Nachrichten fehlt noch was. Hier werden alle geloescht.
 		ps = txn.prepareStatement(sql);
 		ps.setInt(1, DELIVERED.getValue());
 		rs = ps.executeQuery();
