@@ -3411,14 +3411,14 @@ abstract class JdbcDatabase implements Database<Connection> {
 		try
 		{
 			Collection<MessageId> messageIds = GetMessageIdsToDelete(txn);
-
 			for (MessageId id : messageIds) {
 				deleteMessageMetadataAuto(txn, id);
 				deleteMessageDependenciesAuto(txn, id);
 				deleteStatusesAuto(txn, id);
 				deleteMessageAutoImpl(txn, id);
 			}
-			txn.commit();
+			if(messageIds.size() > 0)
+				txn.commit();
 		}
 		catch (SQLException e)
 		{
@@ -3430,12 +3430,13 @@ abstract class JdbcDatabase implements Database<Connection> {
 	{
 		PreparedStatement ps = null;
 		ResultSet rs = null;
-		String sql = "SELECT messageId FROM messages"
-				+ " WHERE state = ?";
+		String sql = "SELECT messages.messageId FROM messages " +
+				" left join statuses on statuses.messageId = messages.messageId " +
+				" WHERE messages.state = ? and statuses.seen = 1";
 		ps = txn.prepareStatement(sql);
 		ps.setInt(1, DELIVERED.getValue());
 		rs = ps.executeQuery();
-		List<MessageId> ids = new ArrayList<MessageId>();
+		List<MessageId> ids = new ArrayList<>();
 		while (rs.next()) ids.add(new MessageId(rs.getBytes(1)));
 		rs.close();
 		ps.close();
