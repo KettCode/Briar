@@ -40,6 +40,7 @@ import org.briarproject.bramble.api.transport.KeySetId;
 import org.briarproject.bramble.api.transport.OutgoingKeys;
 import org.briarproject.bramble.api.transport.TransportKeySet;
 import org.briarproject.bramble.api.transport.TransportKeys;
+import org.briarproject.bramble.util.StringUtils;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -63,6 +64,7 @@ import java.util.logging.Logger;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
+import javax.swing.JToolBar;
 
 import static java.sql.Types.BINARY;
 import static java.sql.Types.BOOLEAN;
@@ -1986,26 +1988,6 @@ abstract class JdbcDatabase implements Database<Connection> {
 	}
 
 	@Override
-	public void deleteMessageAuto(Connection txn) throws DbException {
-		PreparedStatement ps = null;
-		try {
-			String sql = "delete messages\n" +
-					"where messageId in \n" +
-					"(\n" +
-					"\tselect messageId \n" +
-					"\tfrom statuses \n" +
-					"\twhere statuses.seen = 1\n" +
-					") ";
-			ps = txn.prepareStatement(sql);
-			int affected = ps.executeUpdate();
-			ps.close();
-		} catch (SQLException e) {
-			tryToClose(ps, LOG, WARNING);
-			throw new DbException(e);
-		}
-	}
-
-	@Override
 	public Map<MessageId, MessageState> getMessageDependencies(Connection txn,
 			MessageId m) throws DbException {
 		PreparedStatement ps = null;
@@ -3423,4 +3405,93 @@ abstract class JdbcDatabase implements Database<Connection> {
 			throw new DbException(e);
 		}
 	}
+
+	@Override
+	public void deleteMessageAuto(Connection txn) throws DbException {
+		try
+		{
+			Collection<MessageId> messageIds = GetMessageIdsToDelete(txn);
+
+			for (MessageId id : messageIds) {
+				deleteMessageMetadata(txn, id);
+				deleteMessage(txn, id);
+			}
+			//deleteMessageDependenciesAuto(txn, idsString);
+			//deleteStatusesAuto(txn, idsString);
+			txn.commit();
+		}
+		catch (SQLException e)
+		{
+			throw new DbException(e);
+		}
+	}
+
+	private Collection<MessageId> GetMessageIdsToDelete(Connection txn) throws SQLException
+	{
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		String sql = "SELECT messageId FROM messages"
+				+ " WHERE state = ?";
+		ps = txn.prepareStatement(sql);
+		ps.setInt(1, DELIVERED.getValue());
+		rs = ps.executeQuery();
+		List<MessageId> ids = new ArrayList<MessageId>();
+		while (rs.next()) ids.add(new MessageId(rs.getBytes(1)));
+		rs.close();
+		ps.close();
+		return ids;
+	}
+
+	/*
+	private void deleteMessageAutoImpl(Connection txn, String messageIds) throws SQLException {
+		String sql = "delete from messages where messageId in (?)";
+		PreparedStatement ps = txn.prepareStatement(sql);
+		ps.setString(1, messageIds);
+		ps.executeUpdate();
+		ps.close();
+	}
+
+	private void deleteMessageMetadataAuto(Connection txn, String messageIds) throws SQLException {
+		String sql = "delete from messageMetadata where messageId in ";
+		sql += "(" + messageIds + ")";
+		PreparedStatement ps = txn.prepareStatement(sql);
+		int rowsCount = ps.executeUpdate();
+		ps.close();
+	}
+
+	private void deleteMessageDependenciesAuto(Connection txn, String messageIds) throws SQLException {
+		String sql = "delete from messageDependencies where messageId in (?)";
+		PreparedStatement ps = txn.prepareStatement(sql);
+		ps.setString(1, messageIds);
+		ps.executeUpdate();
+		ps.close();
+	}
+
+	private void deleteStatusesAuto(Connection txn, String messageIds) throws SQLException {
+		String sql = "delete from statuses where messageId in (?)";
+		PreparedStatement ps = txn.prepareStatement(sql);
+		ps.setString(1, messageIds);
+		ps.executeUpdate();
+		ps.close();
+	}
+
+
+	private String truncLastChar(String str) {
+		if (str != null && str.length() > 0 && str.charAt(str.length() - 1) == 'x') {
+			str = str.substring(0, str.length() - 1);
+		}
+		return str;
+	}
+
+	private String JoinListWithSeperator(String seperator, List<String> list)
+	{
+		String returnString = "";
+		for (String each : list) {
+			returnString += "'" + each + "'" + seperator;
+		}
+		returnString = truncLastChar(returnString);
+		return returnString;
+	}
+	*/
 }
+
