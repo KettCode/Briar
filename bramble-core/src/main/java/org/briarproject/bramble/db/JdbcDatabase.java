@@ -3413,11 +3413,11 @@ abstract class JdbcDatabase implements Database<Connection> {
 			Collection<MessageId> messageIds = GetMessageIdsToDelete(txn);
 
 			for (MessageId id : messageIds) {
-				deleteMessageMetadata(txn, id);
-				deleteMessage(txn, id);
+				deleteMessageMetadataAuto(txn, id);
+				deleteMessageDependenciesAuto(txn, id);
+				deleteStatusesAuto(txn, id);
+				deleteMessageAutoImpl(txn, id);
 			}
-			//deleteMessageDependenciesAuto(txn, idsString);
-			//deleteStatusesAuto(txn, idsString);
 			txn.commit();
 		}
 		catch (SQLException e)
@@ -3442,56 +3442,36 @@ abstract class JdbcDatabase implements Database<Connection> {
 		return ids;
 	}
 
-	/*
-	private void deleteMessageAutoImpl(Connection txn, String messageIds) throws SQLException {
-		String sql = "delete from messages where messageId in (?)";
+	private void deleteMessageAutoImpl(Connection txn, MessageId messageId) throws SQLException {
+		String sql = "delete from messages where messageId = ?";
 		PreparedStatement ps = txn.prepareStatement(sql);
-		ps.setString(1, messageIds);
+		ps.setBytes(1, messageId.getBytes());
 		ps.executeUpdate();
 		ps.close();
 	}
 
-	private void deleteMessageMetadataAuto(Connection txn, String messageIds) throws SQLException {
-		String sql = "delete from messageMetadata where messageId in ";
-		sql += "(" + messageIds + ")";
+	private void deleteMessageMetadataAuto(Connection txn, MessageId messageId) throws SQLException {
+		String sql = "delete from messageMetadata where messageId = ?";
 		PreparedStatement ps = txn.prepareStatement(sql);
+		ps.setBytes(1, messageId.getBytes());
 		int rowsCount = ps.executeUpdate();
 		ps.close();
 	}
 
-	private void deleteMessageDependenciesAuto(Connection txn, String messageIds) throws SQLException {
-		String sql = "delete from messageDependencies where messageId in (?)";
+	private void deleteMessageDependenciesAuto(Connection txn, MessageId messageId) throws SQLException {
+		String sql = "delete from messageDependencies where messageId = ?";
 		PreparedStatement ps = txn.prepareStatement(sql);
-		ps.setString(1, messageIds);
+		ps.setBytes(1, messageId.getBytes());
 		ps.executeUpdate();
 		ps.close();
 	}
 
-	private void deleteStatusesAuto(Connection txn, String messageIds) throws SQLException {
-		String sql = "delete from statuses where messageId in (?)";
+	private void deleteStatusesAuto(Connection txn, MessageId messageId) throws SQLException {
+		String sql = "delete from statuses where messageId = ?";
 		PreparedStatement ps = txn.prepareStatement(sql);
-		ps.setString(1, messageIds);
+		ps.setBytes(1, messageId.getBytes());
 		ps.executeUpdate();
 		ps.close();
 	}
-
-
-	private String truncLastChar(String str) {
-		if (str != null && str.length() > 0 && str.charAt(str.length() - 1) == 'x') {
-			str = str.substring(0, str.length() - 1);
-		}
-		return str;
-	}
-
-	private String JoinListWithSeperator(String seperator, List<String> list)
-	{
-		String returnString = "";
-		for (String each : list) {
-			returnString += "'" + each + "'" + seperator;
-		}
-		returnString = truncLastChar(returnString);
-		return returnString;
-	}
-	*/
 }
 
