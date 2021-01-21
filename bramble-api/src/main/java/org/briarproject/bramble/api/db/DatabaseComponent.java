@@ -1,5 +1,6 @@
 package org.briarproject.bramble.api.db;
 
+import org.briarproject.bramble.api.client.ClientHelper;
 import org.briarproject.bramble.api.contact.Contact;
 import org.briarproject.bramble.api.contact.ContactId;
 import org.briarproject.bramble.api.contact.PendingContact;
@@ -28,6 +29,7 @@ import org.briarproject.bramble.api.transport.KeySetId;
 import org.briarproject.bramble.api.transport.TransportKeySet;
 import org.briarproject.bramble.api.transport.TransportKeys;
 
+import java.sql.Connection;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -145,7 +147,9 @@ public interface DatabaseComponent extends TransactionManager {
 	 */
 	void deleteMessage(Transaction txn, MessageId m) throws DbException;
 
-	void deleteMessagesAuto(Transaction transaction) throws DbException;
+	void deleteMessageAuto(Transaction transaction, MessageId messageId) throws DbException;
+
+	Collection<MessageId> GetMessageIdsToDelete(Transaction transaction) throws DbException;
 
 	/**
 	 * Deletes any metadata associated with the given message.

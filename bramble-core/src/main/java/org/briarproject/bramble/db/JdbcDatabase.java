@@ -2,6 +2,8 @@ package org.briarproject.bramble.db;
 
 import com.sun.org.apache.bcel.internal.classfile.Unknown;
 
+import org.briarproject.bramble.api.FormatException;
+import org.briarproject.bramble.api.client.ClientHelper;
 import org.briarproject.bramble.api.contact.Contact;
 import org.briarproject.bramble.api.contact.ContactId;
 import org.briarproject.bramble.api.contact.PendingContact;
@@ -13,6 +15,7 @@ import org.briarproject.bramble.api.crypto.PublicKey;
 import org.briarproject.bramble.api.crypto.SecretKey;
 import org.briarproject.bramble.api.crypto.SignaturePrivateKey;
 import org.briarproject.bramble.api.crypto.SignaturePublicKey;
+import org.briarproject.bramble.api.data.BdfDictionary;
 import org.briarproject.bramble.api.db.DataTooNewException;
 import org.briarproject.bramble.api.db.DataTooOldException;
 import org.briarproject.bramble.api.db.DbClosedException;
@@ -3410,18 +3413,14 @@ abstract class JdbcDatabase implements Database<Connection> {
 	}
 
 	@Override
-	public void deleteMessageAuto(Connection txn) throws DbException {
+	public void deleteMessageAuto(Connection txn, MessageId messageId) throws DbException {
 		try
 		{
-			Collection<MessageId> messageIds = GetMessageIdsToDelete(txn);
-			for (MessageId id : messageIds) {
-				deleteMessageMetadataAuto(txn, id);
-				deleteMessageDependenciesAuto(txn, id);
-				deleteStatusesAuto(txn, id);
-				deleteMessageAutoImpl(txn, id);
-			}
-			if(messageIds.size() > 0)
-				txn.commit();
+			deleteMessageMetadataAuto(txn, messageId);
+			deleteMessageDependenciesAuto(txn, messageId);
+			deleteStatusesAuto(txn, messageId);
+			deleteMessageAutoImpl(txn, messageId);
+			txn.commit();
 		}
 		catch (SQLException e)
 		{
@@ -3429,24 +3428,30 @@ abstract class JdbcDatabase implements Database<Connection> {
 		}
 	}
 
-	private Collection<MessageId> GetMessageIdsToDelete(Connection txn) throws SQLException
+	public Collection<MessageId> GetMessageIdsToDelete(Connection txn) throws DbException
 	{
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		String sql = "SELECT messages.messageId FROM messages " +
-				" left join statuses on statuses.messageId = messages.messageId " +
-				" WHERE messages.state = ? and seen " +
-				"and ((groupShared AND messageShared) " + //Begingung eigenen Nachrichten
-				"or (not messageShared and not ack and not requested)) "; //Bedingung Empfangene Nachrichten
-				//ToDo Empfangene Nachrichten fehlt noch was. Hier werden alle geloescht.
-		ps = txn.prepareStatement(sql);
-		ps.setInt(1, DELIVERED.getValue());
-		rs = ps.executeQuery();
-		List<MessageId> ids = new ArrayList<>();
-		while (rs.next()) ids.add(new MessageId(rs.getBytes(1)));
-		rs.close();
-		ps.close();
-		return ids;
+		try {
+			PreparedStatement ps = null;
+			ResultSet rs = null;
+			String sql = "SELECT messages.messageId FROM messages " +
+					" left join statuses on statuses.messageId = messages.messageId " +
+					" WHERE messages.state = ? and seen " +
+					"and ((groupShared AND messageShared) " + //Begingung eigenen Nachrichten
+					"or (not messageShared and not ack and not requested)) "; //Bedingung Empfangene Nachrichten
+					//ToDo Empfangene Nachrichten fehlt noch was. Hier werden alle geloescht.
+			ps = txn.prepareStatement(sql);
+			ps.setInt(1, DELIVERED.getValue());
+			rs = ps.executeQuery();
+			List<MessageId> ids = new ArrayList<>();
+			while (rs.next()) ids.add(new MessageId(rs.getBytes(1)));
+			rs.close();
+			ps.close();
+			return ids;
+		}
+		catch (SQLException e)
+		{
+			throw new DbException(e);
+		}
 	}
 
 	private void deleteMessageAutoImpl(Connection txn, MessageId messageId) throws SQLException {

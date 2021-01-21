@@ -1,5 +1,7 @@
 package org.briarproject.briar.api.messaging;
 
+import org.briarproject.bramble.api.FormatException;
+import org.briarproject.bramble.api.client.ClientHelper;
 import org.briarproject.bramble.api.contact.ContactId;
 import org.briarproject.bramble.api.db.DbException;
 import org.briarproject.bramble.api.db.Transaction;
@@ -11,6 +13,7 @@ import org.briarproject.briar.api.conversation.ConversationManager.ConversationC
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 
 import javax.annotation.Nullable;
 
@@ -83,7 +86,11 @@ public interface MessagingManager extends ConversationClient {
 	 * Added: 2019-01-01
 	 */
 
-	void deleteMessagesAuto() throws DbException;
+	void deleteMessageAuto(MessageId messageId) throws DbException;
+
+	Collection<MessageId> GetMessageIdsToDelete() throws DbException;
+
+	boolean IsMessageRead(MessageId messageId) throws DbException, FormatException;
 
 	boolean contactSupportsImages(Transaction txn, ContactId c)
 			throws DbException;

@@ -422,10 +422,32 @@ class MessagingManagerImpl implements MessagingManager, IncomingMessageHook,
 	}
 
 	@Override
-	public void deleteMessagesAuto() throws DbException {
+	public void deleteMessageAuto(MessageId messageId) throws DbException {
 		Transaction txn = db.startTransaction(false);
 		try {
-			db.deleteMessagesAuto(txn);
+			db.deleteMessageAuto(txn, messageId);
+		} finally {
+			db.endTransaction(txn);
+		}
+	}
+
+	public boolean IsMessageRead(MessageId messageId) throws DbException, FormatException
+	{
+		Transaction txn = db.startTransaction(false);
+		try {
+			BdfDictionary dbfDict =
+					clientHelper.getMessageMetadataAsDictionary(txn, messageId);
+			return dbfDict.getBoolean(MSG_KEY_READ, false);
+		} finally {
+			db.endTransaction(txn);
+		}
+	}
+
+	public Collection<MessageId> GetMessageIdsToDelete() throws DbException
+	{
+		Transaction txn = db.startTransaction(false);
+		try {
+			return db.GetMessageIdsToDelete(txn);
 		} finally {
 			db.endTransaction(txn);
 		}

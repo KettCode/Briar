@@ -15,13 +15,17 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 
+import org.briarproject.bramble.api.FormatException;
 import org.briarproject.bramble.api.account.AccountManager;
+import org.briarproject.bramble.api.client.ClientHelper;
 import org.briarproject.bramble.api.crypto.SecretKey;
+import org.briarproject.bramble.api.data.BdfDictionary;
 import org.briarproject.bramble.api.db.DbException;
 import org.briarproject.bramble.api.lifecycle.LifecycleManager;
 import org.briarproject.bramble.api.lifecycle.LifecycleManager.StartResult;
 import org.briarproject.bramble.api.settings.Settings;
 import org.briarproject.bramble.api.settings.SettingsManager;
+import org.briarproject.bramble.api.sync.MessageId;
 import org.briarproject.bramble.api.system.AndroidExecutor;
 import org.briarproject.bramble.api.system.AndroidWakeLockManager;
 import org.briarproject.briar.R;
@@ -30,6 +34,7 @@ import org.briarproject.briar.api.android.AndroidNotificationManager;
 import org.briarproject.briar.api.android.LockManager;
 import org.briarproject.briar.api.messaging.MessagingManager;
 
+import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
@@ -93,6 +98,8 @@ public class BriarService extends Service {
 	MessagingManager messagingManager;
 	@Inject
 	SettingsManager settingsManager;
+	@Inject
+	ClientHelper clientHelper;
 
 
 	// Fields that are accessed from background threads must be volatile
@@ -193,13 +200,23 @@ public class BriarService extends Service {
 		try {
 			final String SETTINGS_NAMESPACE = "android-ui";
 			final String PREF_KEY_AUTO_DELETE = "pref_key_auto_delete";
+			String MSG_KEY_READ = "read";
+
 			Settings settings = settingsManager.getSettings(SETTINGS_NAMESPACE);
 			boolean autoDelete =
 					settings.getBoolean(PREF_KEY_AUTO_DELETE, false);
 			if (autoDelete)
-				messagingManager.deleteMessagesAuto();
+			{
+				Collection<MessageId> messageIds = messagingManager.GetMessageIdsToDelete();
+				for(MessageId messageId: messageIds)
+				{
+					boolean messageRead = messagingManager.IsMessageRead(messageId);
+					if(messageRead)
+						messagingManager.deleteMessageAuto(messageId);
+				}
+			}
 		}
-		catch (DbException ex)
+		catch (DbException | FormatException ex)
 		{
 			LOG.info(ex.getMessage());
 		}

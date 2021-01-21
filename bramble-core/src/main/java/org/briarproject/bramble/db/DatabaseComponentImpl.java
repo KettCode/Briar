@@ -1,5 +1,6 @@
 package org.briarproject.bramble.db;
 
+import org.briarproject.bramble.api.client.ClientHelper;
 import org.briarproject.bramble.api.contact.Contact;
 import org.briarproject.bramble.api.contact.ContactId;
 import org.briarproject.bramble.api.contact.PendingContact;
@@ -385,10 +386,19 @@ class DatabaseComponentImpl<T> implements DatabaseComponent {
 	}
 
 	@Override
-	public void deleteMessagesAuto(Transaction transaction) throws DbException {
+	public void deleteMessageAuto(Transaction transaction, MessageId messageId) throws DbException
+	{
 		if (transaction.isReadOnly()) throw new IllegalArgumentException();
 		T txn = unbox(transaction);
-		db.deleteMessageAuto(txn);
+		db.deleteMessageAuto(txn, messageId);
+	}
+
+	@Override
+	public Collection<MessageId> GetMessageIdsToDelete(Transaction transaction) throws DbException
+	{
+		if (transaction.isReadOnly()) throw new IllegalArgumentException();
+		T txn = unbox(transaction);
+		return db.GetMessageIdsToDelete(txn);
 	}
 
 	@Override
